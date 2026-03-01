@@ -1,4 +1,4 @@
-# 💤 LazyVim
+# My LazyVim Config
 
-A starter template for [LazyVim](https://github.com/LazyVim/LazyVim).
-Refer to the [documentation](https://lazyvim.github.io/installation) to get started.
+This is my personal [LazyVim](https://github.com/LazyVim/LazyVim) configuration.
+For setup and usage details, see the [LazyVim documentation](https://lazyvim.github.io/installation).
