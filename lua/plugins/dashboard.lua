@@ -11,7 +11,7 @@ return {
           return
         end
         vim.cmd("tcd " .. vim.fn.fnameescape(dir))
-        Snacks.picker.files({ cwd = dir })
+        Snacks.explorer({ cwd = dir })
       end
 
       opts.picker = opts.picker or {}
