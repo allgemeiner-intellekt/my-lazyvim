@@ -1,3 +1,17 @@
+local cursor_colors = {
+  fg = "#eff1f5",
+  normal = "#dc8a78",
+  insert = "#40a02b",
+  select = "#7287fd",
+}
+
+local function can_set_terminal_cursor_color()
+  -- Warp currently does not reliably honor dynamic cursor colors from Neovim.
+  -- Keep the Neovim-side highlight config, but avoid sending extra cursor-color
+  -- escape sequences there.
+  return vim.env.TERM_PROGRAM ~= "WarpTerminal" and #vim.api.nvim_list_uis() > 0
+end
+
 return {
   {
     "kepano/flexoki-neovim",
@@ -5,12 +19,6 @@ return {
     lazy = false,
     priority = 1000,
     init = function()
-      local cursor_colors = {
-        normal = "#dc8a78",
-        insert = "#40a02b",
-        select = "#7287fd",
-      }
-
       vim.opt.guicursor = table.concat({
         "n-c-o-sm:block-CursorNormal",
         "i-ci:block-CursorInsert",
@@ -20,9 +28,10 @@ return {
       }, ",")
 
       local function set_terminal_cursor_color(color)
-        -- OSC 12 sets the terminal cursor color. This is needed in Warp,
-        -- where guicursor highlight groups may not be applied visually.
-        vim.api.nvim_chan_send(vim.v.stderr, "\027]12;" .. color .. "\007")
+        if can_set_terminal_cursor_color() then
+          -- OSC 12 sets the terminal cursor color in terminals such as Ghostty.
+          pcall(vim.api.nvim_chan_send, vim.v.stderr, "\027]12;" .. color .. "\007")
+        end
       end
 
       local function sync_cursor_color()
@@ -44,17 +53,19 @@ return {
 
       vim.api.nvim_create_autocmd("VimLeavePre", {
         callback = function()
-          -- OSC 112 resets the terminal cursor color on exit.
-          vim.api.nvim_chan_send(vim.v.stderr, "\027]112\007")
+          if can_set_terminal_cursor_color() then
+            -- OSC 112 resets the terminal cursor color on exit.
+            pcall(vim.api.nvim_chan_send, vim.v.stderr, "\027]112\007")
+          end
         end,
       })
     end,
     opts = {
       highlight_groups = {
-        Cursor = { fg = "#eff1f5", bg = "#dc8a78" },
-        CursorNormal = { fg = "#eff1f5", bg = "#dc8a78" },
-        CursorInsert = { fg = "#eff1f5", bg = "#40a02b" },
-        CursorSelect = { fg = "#eff1f5", bg = "#7287fd" },
+        Cursor = { fg = cursor_colors.fg, bg = cursor_colors.normal },
+        CursorNormal = { fg = cursor_colors.fg, bg = cursor_colors.normal },
+        CursorInsert = { fg = cursor_colors.fg, bg = cursor_colors.insert },
+        CursorSelect = { fg = cursor_colors.fg, bg = cursor_colors.select },
       },
     },
   },
